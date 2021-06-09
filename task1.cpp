@@ -3,36 +3,11 @@
 #include <stdexcept>
 #include <vector>
 
-template<class KeyType, class ValueType, class Hash = std::hash<KeyType> > class HashMap {
-    private:
-
-        using Iter=typename std::list<std::pair<const KeyType, ValueType>>::iterator;
-        using ConstIter=typename std::list<std::pair<const KeyType, ValueType>>::const_iterator;
-
-        std::list<std::pair<const KeyType, ValueType>> data;
-        size_t sz = 0;
-        std::vector<std::vector<Iter> > buckets;
-        Hash encode = Hash();
-        int limit = 2;
-
-        void reorganise() {
-            std::vector<Iter> all_elems;
-            for (std::vector<Iter> bucket : buckets) {
-                for (Iter elem : bucket) {
-                    all_elems.push_back(elem);
-                }
-            }
-            int new_buckets_count = limit * buckets.size();
-            buckets.clear();
-            buckets.resize(new_buckets_count);
-            for (size_t i = 0; i < all_elems.size(); i++) {
-                buckets[encode(all_elems[i]->first) % new_buckets_count].push_back(all_elems[i]);
-            }
-        }
-
+template<class KeyType, class ValueType, class Hash = std::hash<KeyType> >
+class HashMap {
     public:
-        typedef Iter iterator;
-        typedef ConstIter const_iterator;
+        typedef typename std::list<std::pair<const KeyType, ValueType>>::iterator iterator;
+        typedef typename std::list<std::pair<const KeyType, ValueType>>::const_iterator const_iterator;
 
         HashMap() {}
 
@@ -117,7 +92,7 @@ template<class KeyType, class ValueType, class Hash = std::hash<KeyType> > class
             sz--;
         }
 
-        int size() const {
+        size_t size() const {
             return sz;
         }
 
@@ -129,23 +104,23 @@ template<class KeyType, class ValueType, class Hash = std::hash<KeyType> > class
             return encode;
         }
 
-        ConstIter begin() const {
+        const_iterator begin() const {
             return data.begin();
         }
 
-        ConstIter end() const {
+        const_iterator end() const {
             return data.end();
         }
 
-        Iter begin() {
+        iterator begin() {
             return data.begin();
         }
 
-        Iter end() {
+        iterator end() {
             return data.end();
         }
 
-        Iter find(KeyType key) {
+        iterator find(KeyType key) {
             if (!buckets.size()) {
                 return data.end();
             }
@@ -161,7 +136,7 @@ template<class KeyType, class ValueType, class Hash = std::hash<KeyType> > class
             return elem;
         }
 
-        ConstIter find(KeyType key) const {
+        const_iterator find(KeyType key) const {
             if (!buckets.size()) {
                 return data.end();
             }
@@ -193,5 +168,30 @@ template<class KeyType, class ValueType, class Hash = std::hash<KeyType> > class
             data.clear();
             buckets.clear();
             sz = 0;
+        }
+    private:
+        using KeyValList = std::list<std::pair<const KeyType, ValueType>>;
+        using Iter = typename KeyValList::iterator;
+        using ConstIter = typename KeyValList::const_iterator;
+
+        std::list<std::pair<const KeyType, ValueType>> data;
+        size_t sz = 0;
+        std::vector<std::vector<Iter> > buckets;
+        Hash encode = Hash();
+        size_t limit = 2;
+
+        void reorganise() {
+            std::vector<Iter> all_elems;
+            for (std::vector<Iter> bucket : buckets) {
+                for (Iter elem : bucket) {
+                    all_elems.push_back(elem);
+                }
+            }
+            size_t new_buckets_count = limit * buckets.size();
+            buckets.clear();
+            buckets.resize(new_buckets_count);
+            for (size_t i = 0; i < all_elems.size(); i++) {
+                buckets[encode(all_elems[i]->first) % new_buckets_count].push_back(all_elems[i]);
+            }
         }
 };
